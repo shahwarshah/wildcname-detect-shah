@@ -1,80 +1,93 @@
-🟢 Wildcard CNAME Detector
+<div align="center">
+🔎 WILDCARD CNAME DETECTOR
+Professional Wildcard DNS Analysis Tool for Bug Bounty & Security Research
 
 Author: Shahwar Shah
-Version: 1.0
+Category: DNS Reconnaissance · Subdomain Takeover Analysis
 Language: Python 3
 
-🧠 Overview
+</div>
+📌 What This Tool Does
 
-Wildcard CNAME Detector is a professional tool for security researchers and bug bounty hunters to identify wildcard CNAME records in domains and subdomains.
+Wildcard CNAME Detector is a purpose‑built reconnaissance tool designed to identify wildcard CNAME configurations across large domain and subdomain lists.
+It focuses on signal over noise by printing only confirmed wildcard CNAME hosts, along with:
 
-It resolves DNS CNAMEs, follows HTTP/HTTPS redirects (ignoring SSL errors), and clearly reports which domains are configured with wildcard CNAMEs, helping uncover potential subdomain takeover risks.
+The resolved CNAME target
+The actual HTTP/HTTPS landing destination
+Clean, color‑coded output suitable for reports
 
-Only domains with wildcard CNAMEs are displayed, keeping output concise and professional.
+This makes it ideal for:
 
-🔍 Key Features
+Subdomain takeover reconnaissance
+DNS misconfiguration analysis
+Bug bounty triage and validation
 
-✅ Detect wildcard CNAME records reliably
+🧠 How It Works (High‑Level)
 
-✅ Resolve DNS CNAME targets
+Takes a list of domains or subdomains
+Tests controlled random subdomains per entry
+Confirms wildcard behavior at the DNS CNAME level
+Resolves the actual CNAME target
+Performs HTTP + HTTPS requests
+Follows redirects while ignoring SSL certificate errors
+Prints only real wildcard CNAME hosts
+No false positives. No spam output.
 
-✅ Follow HTTPS & HTTP redirects automatically
+✨ Core Features
 
-✅ Handle SSL/TLS certificate errors
+✔ Accurate wildcard CNAME detection
+✔ DNS‑level CNAME target resolution
+✔ HTTP and HTTPS redirect tracing
+✔ SSL/TLS errors safely ignored
+✔ Full redirect chain support
+✔ Color‑coded output for clarity
+✔ Graceful Ctrl+C termination
+✔ Designed for large input lists
+✔ Bug‑bounty‑ready output
 
-✅ Show final landing URL(s) with color-coded output
+📦 Installation
+Requirements
 
-✅ Ctrl+C safe for graceful termination
+Python 3.8+
+pip
 
-✅ Only prints domains/subdomains with wildcard CNAMEs
-
-✅ Designed for bug bounty and penetration testing reports
-
-⚡ Installation
-
-Clone the repository or download the script:
-
-git clone <repo-url>
-cd wildcard-cname-detector
-
-
-Install dependencies:
-
+Install dependencies
 pip install dnspython requests colorama
 
-
-Prepare a text file with domains/subdomains, one per line.
-
-▶️ Usage
+🚀 Usage
+Basic scan
 python wildcard_cname_detector.py -l domains.txt
 
-Optional Arguments
-
--s, --server → Specify a custom DNS resolver (example: 8.8.8.8):
-
+Use a custom DNS resolver
 python wildcard_cname_detector.py -l domains.txt -s 8.8.8.8
 
-✅ Example Output
-[+] Wildcard CNAME: event-bridge.covid19.twilio.com -> er-cell0.edge.prod.twilio.com -> https://twilio.com
-[+] Wildcard CNAME: frontline.stage.twilio.com -> twilio.netlifyglobalcdn.com -> no redirect
-[+] Wildcard CNAME: api.twilio.com -> er-cell0.edge.prod.twilio.com -> no redirect
 
 
-Green: Domain + CNAME
 
-Yellow: Redirect URL(s)
+Legend
 
-💡 Notes
+🟢 Domain + CNAME detection
+🟡 Redirect destination
+❌ Non‑wildcard domains are never printed
 
-Only domains with wildcard CNAME are displayed
+⚠️ Important Notes
 
-SSL errors are ignored to detect redirects even on private/test certificates
+This tool does not claim exploitability
+A wildcard CNAME does not automatically mean takeover
 
-Ideal for DNS misconfiguration checks and subdomain takeover reconnaissance
+Always verify:
 
-Compatible with large domain lists for professional bug bounty scanning
+Service ownership
+Account control
+Platform status
 
-⚙️ Author
+Designed for recon and validation, not exploitation
+
+🧑‍💻 Author
 
 Shahwar Shah
-Cybersecurity researcher & bug bounty hunter
+Security Researcher · Bug Bounty Hunter
+
+GitHub: https://github.com/shahwarshah
+
+LinkedIn: https://www.linkedin.com/in/syed-shahwar-ahmad-51531a319
