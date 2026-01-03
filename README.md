@@ -1,67 +1,65 @@
-# WildCNAME
+Wildcard CNAME Detector
 
-A professional wildcard CNAME discovery tool written in Python.
+Author: Shahwar Shah
+Version: 1.0
+Language: Python 3
 
-Created by: **shahwarshah**
+🧠 Description
 
-This tool helps you detect whether a domain uses wildcard DNS/CNAME, by generating
-random subdomains and resolving their DNS records.
+Wildcard CNAME Detector is a professional tool designed for bug bounty researchers and security testers to:
 
----
+Detect wildcard CNAMEs on domains/subdomains
 
-## What it Does
+Show DNS CNAME target
 
-WildCNAME will:
+Follow HTTP and HTTPS redirects
 
-1. Generate random subdomain names.
-2. Resolve them against the target DNS.
-3. Print colorful results showing whether CNAME records are returned.
-4. Summarize repeated patterns that may indicate wildcard DNS.
+Display the final landing URL (even with SSL certificate warnings)
 
----
+Print only domains/subdomains with wildcard CNAME
 
-## Requirements
+Color-highlight redirects for clear reporting
 
-Install dependencies:
+This tool is useful for identifying potential subdomain takeover risks or analyzing DNS behavior for security assessments.
 
-pip install dnspython rich
+🔍 Features
 
----
+Detects wildcard CNAMEs automatically
 
-## Usage
+Resolves DNS to show CNAME target
 
-./wildcname.py example.com
+Follows HTTPS first, then HTTP
 
-Options:
+Ignores SSL/TLS certificate warnings (like browser “proceed anyway”)
 
-- `-t`, `--tries`: Number of random subdomains to test (default 10)
-- `-r`, `--record`: DNS record type (default CNAME)
-- `-s`, `--server`: Custom DNS server to query
+Shows full redirect chain
 
-Example:
+Clean colorized output
 
-./wildcname.py frontline.stage.twilio.com -t 25 -s 8.8.8.8
+Only prints domains/subdomains with wildcard CNAME
 
----
+Ctrl+C safe
 
-## Output
+⚡ Installation
 
-WildCNAME prints:
+Clone the repository or download the script:
 
-- Each random subdomain and its resolved value
-- A summary table showing all unique responses
-- This helps you see if the same target repeats (wildcard DNS)
+git clone <repo-url>
+cd wildcard-cname-detector
 
----
 
-## Notes
+Install required Python modules:
 
-- Repeated CNAMEs for different random subdomains usually indicate a wildcard.
-- If you see no records for most random names, wildcard may not be in place.
-- Always verify with authoritative DNS records too.
+pip install dnspython requests colorama
 
----
 
-## Author
+Prepare a text file with domains/subdomains, one per line.
 
-**shahwarshah**
+▶️ Usage
+python wildcard_cname_detector.py -l domains.txt
+
+Optional Arguments
+
+-s, --server → Use a custom DNS resolver (example: 8.8.8.8)
+
+python wildcard_cname_detector.py -l domains.txt -s 8.8.8.8
