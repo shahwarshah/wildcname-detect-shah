@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
 
 import argparse
-import random
-import string
 import dns.resolver
+import signal
+import sys
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from colorama import Fore, Style, init
 
+# Initialize colorama
 init(autoreset=True)
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
+# -------------------------
+# Graceful Ctrl+C
+# -------------------------
+def handle_exit(sig, frame):
+    print(Fore.RED + "\n[!] Scan interrupted by user. Exiting cleanly.\n")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, handle_exit)
 
 # -------------------------
 # Banner
@@ -19,106 +32,70 @@ def banner():
    \ V  V / | | | (_| | (__| | | |  __/ (_) | | | |___| |\  |/ ___ \| |  | | |___
     \_/\_/  |_|_|\__,_|\___|_| |_|\___|\___/|_|  \____|_| \_/_/   \_\_|  |_|_____|
 
-        Wildcard CNAME Detection Tool
-        DNS Pattern & Subdomain Resolution Analysis
+        Wildcard CNAME Detector
         Author: shahwarshah
 """ + Style.RESET_ALL)
 
-
 # -------------------------
-# Helpers
+# Resolve CNAME
 # -------------------------
-def random_subdomain(length=10):
-    chars = string.ascii_lowercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(length))
-
-
-def resolve_cname(domain, resolver):
+def get_cname_target(domain, resolver):
     try:
-        answers = resolver.resolve(domain, "CNAME")
-        return str(answers[0].target).rstrip(".")
-    except Exception:
+        answers = resolver.resolve(domain, 'CNAME')
+        return str(answers[0].target).rstrip('.')
+    except dns.resolver.NoAnswer:
+        return None
+    except dns.resolver.NXDOMAIN:
+        return None
+    except dns.exception.DNSException:
         return None
 
+# -------------------------
+# Detect wildcard CNAME
+# -------------------------
+def check_wildcard(domain, resolver, test_count=3):
+    hits = set()
+    for i in range(test_count):
+        test_sub = f"test{i}.{domain}"
+        target = get_cname_target(test_sub, resolver)
+        if target:
+            hits.add(target)
+    if len(hits) == 1:
+        return hits.pop()
+    return None
 
 # -------------------------
-# Random Wildcard Scan
+# Get HTTP/HTTPS redirects
 # -------------------------
-def scan_random(domain, attempts, resolver):
-    print(Fore.BLUE + f"\n[+] Random wildcard scan on: {domain}\n")
-
-    results = {}
-
-    for _ in range(attempts):
-        sub = f"{random_subdomain()}.{domain}"
-        cname = resolve_cname(sub, resolver)
-
-        key = cname if cname else "NO_CNAME"
-        results.setdefault(key, []).append(sub)
-
-        if cname:
-            print(Fore.YELLOW + sub + Fore.GREEN + f"  →  {cname}")
-        else:
-            print(Fore.YELLOW + sub + Fore.RED + "  →  NO CNAME")
-
-    return results
-
+def get_redirect(domain):
+    urls = [f"https://{domain}", f"http://{domain}"]
+    for url in urls:
+        try:
+            r = requests.get(url, allow_redirects=True, timeout=6, verify=False)
+            if r.history:
+                # There was a redirect chain
+                return " -> ".join([resp.url for resp in r.history] + [r.url])
+            else:
+                return r.url  # no redirect
+        except requests.exceptions.RequestException:
+            continue
+    return "HTTP request failed"
 
 # -------------------------
-# Subdomain List Scan
+# Scan domains from file
 # -------------------------
-def scan_list(file_path, resolver):
-    print(Fore.BLUE + f"\n[+] Scanning subdomain list: {file_path}\n")
-
-    results = {}
-
-    with open(file_path, "r") as f:
+def scan_domains(file_path, resolver):
+    with open(file_path, 'r') as f:
         for line in f:
-            sub = line.strip()
-            if not sub:
+            domain = line.strip()
+            if not domain:
                 continue
 
-            cname = resolve_cname(sub, resolver)
-            key = cname if cname else "NO_CNAME"
-            results.setdefault(key, []).append(sub)
-
-            if cname:
-                print(Fore.YELLOW + sub + Fore.GREEN + f"  →  {cname}")
-            else:
-                print(Fore.YELLOW + sub + Fore.RED + "  →  NO CNAME")
-
-    return results
-
-
-# -------------------------
-# Analysis & Summary
-# -------------------------
-def analyze(results):
-    print(Fore.CYAN + "\n--- Scan Summary ---\n")
-
-    wildcard_detected = False
-
-    for cname, subs in results.items():
-        print(Fore.WHITE + f"{cname}  ->  {len(subs)} subdomains")
-
-        if cname != "NO_CNAME" and len(subs) >= 3:
-            wildcard_detected = True
-            print(
-                Fore.RED
-                + f"[!] Possible Wildcard CNAME detected: {cname}"
-            )
-
-    if wildcard_detected:
-        print(
-            Fore.RED
-            + "\n[!] Wildcard CNAME behavior is very likely.\n"
-        )
-    else:
-        print(
-            Fore.GREEN
-            + "\n[+] No clear wildcard CNAME behavior detected.\n"
-        )
-
+            cname_target = check_wildcard(domain, resolver)
+            if cname_target:
+                redirect = get_redirect(domain)
+                # Green for domain + CNAME, Yellow for redirect
+                print(Fore.GREEN + f"[+] Wildcard CNAME: {domain} -> {cname_target} -> " + Fore.YELLOW + f"{redirect}")
 
 # -------------------------
 # Main
@@ -126,49 +103,17 @@ def analyze(results):
 def main():
     banner()
 
-    parser = argparse.ArgumentParser(
-        description="Wildcard CNAME detection tool by shahwarshah"
-    )
-
-    parser.add_argument(
-        "-d", "--domain",
-        help="Base domain for random wildcard testing"
-    )
-    parser.add_argument(
-        "-l", "--list",
-        help="File containing subdomains to scan"
-    )
-    parser.add_argument(
-        "-t", "--tries",
-        type=int,
-        default=15,
-        help="Number of random subdomains to test"
-    )
-    parser.add_argument(
-        "-s", "--server",
-        help="Custom DNS server (example: 8.8.8.8)"
-    )
+    parser = argparse.ArgumentParser(description="Wildcard CNAME + HTTP/HTTPS redirect detector by shahwarshah")
+    parser.add_argument("-l", "--list", help="File containing domains/subdomains to scan", required=True)
+    parser.add_argument("-s", "--server", help="Custom DNS server (example: 8.8.8.8)")
 
     args = parser.parse_args()
-
-    if not args.domain and not args.list:
-        print(Fore.RED + "[-] You must provide --domain or --list")
-        return
 
     resolver = dns.resolver.Resolver()
     if args.server:
         resolver.nameservers = [args.server]
 
-    results = {}
-
-    if args.domain:
-        results = scan_random(args.domain, args.tries, resolver)
-
-    if args.list:
-        results = scan_list(args.list, resolver)
-
-    analyze(results)
-
+    scan_domains(args.list, resolver)
 
 if __name__ == "__main__":
     main()
