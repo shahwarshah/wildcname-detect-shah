@@ -1,44 +1,32 @@
-Wildcard CNAME Detector
+🟢 Wildcard CNAME Detector
 
 Author: Shahwar Shah
 Version: 1.0
 Language: Python 3
 
-🧠 Description
+🧠 Overview
 
-Wildcard CNAME Detector is a professional tool designed for bug bounty researchers and security testers to:
+Wildcard CNAME Detector is a professional tool for security researchers and bug bounty hunters to identify wildcard CNAME records in domains and subdomains. It resolves DNS CNAMEs, follows HTTP/HTTPS redirects (ignoring SSL errors), and clearly reports which domains are configured with wildcard CNAMEs, helping uncover potential subdomain takeover risks.
 
-Detect wildcard CNAMEs on domains/subdomains
+The tool focuses on accuracy, clarity, and professional output. Only relevant domains with wildcard CNAMEs are displayed.
 
-Show DNS CNAME target
+🔍 Key Features
 
-Follow HTTP and HTTPS redirects
+Detect wildcard CNAME records reliably
 
-Display the final landing URL (even with SSL certificate warnings)
+Resolves DNS CNAME targets
 
-Print only domains/subdomains with wildcard CNAME
+Follows HTTPS and HTTP redirects
 
-Color-highlight redirects for clear reporting
+Handles SSL/TLS certificate errors automatically
 
-This tool is useful for identifying potential subdomain takeover risks or analyzing DNS behavior for security assessments.
+Shows final landing URL(s) in a clear, color-coded format
 
-🔍 Features
+Ctrl+C safe for graceful termination
 
-Detects wildcard CNAMEs automatically
+Only prints domains/subdomains with wildcard CNAMEs
 
-Resolves DNS to show CNAME target
-
-Follows HTTPS first, then HTTP
-
-Ignores SSL/TLS certificate warnings (like browser “proceed anyway”)
-
-Shows full redirect chain
-
-Clean colorized output
-
-Only prints domains/subdomains with wildcard CNAME
-
-Ctrl+C safe
+Designed for bug bounty and penetration testing reports
 
 ⚡ Installation
 
@@ -48,18 +36,34 @@ git clone <repo-url>
 cd wildcard-cname-detector
 
 
-Install required Python modules:
+Install dependencies:
 
 pip install dnspython requests colorama
 
 
-Prepare a text file with domains/subdomains, one per line.
+Prepare a text file containing domains/subdomains, one per line.
 
 ▶️ Usage
 python wildcard_cname_detector.py -l domains.txt
 
 Optional Arguments
 
--s, --server → Use a custom DNS resolver (example: 8.8.8.8)
+-s, --server → Specify a custom DNS resolver (e.g., 8.8.8.8):
 
 python wildcard_cname_detector.py -l domains.txt -s 8.8.8.8
+
+
+💡 Notes
+
+Only domains with wildcard CNAME are displayed
+
+SSL errors are ignored to detect redirects even on private/test certificates
+
+Ideal for DNS misconfiguration checks and subdomain takeover reconnaissance
+
+Compatible with large domain lists for professional bug bounty scanning
+
+⚙️ Author
+
+Shahwar Shah
+Cybersecurity researcher & bug bounty hunter
